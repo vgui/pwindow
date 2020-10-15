@@ -226,7 +226,7 @@ protected:
 
                 OnDraw();
                 m_graphics.attach(m_renbuff.buf(), m_renbuff.width(), m_renbuff.height(), m_renbuff.stride());
-                m_graphics.clearAll(127,0,0);
+                m_graphics.clearAll(255,255,255);
                 //m_graphics.blendMode(Agg2D::BlendAdd);
 
                 m_graphics.antiAliasGamma(1.4);

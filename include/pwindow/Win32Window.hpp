@@ -247,7 +247,7 @@ protected:
             if(win_ptr)
                 SetWindowLongPtr(handle, GWLP_USERDATA, win_ptr);
             else
-                throw std::runtime_error("NULL Win32Window pointer in CreateWin32Window function.");
+                throw std::runtime_error("Window pointer is NULL in StaticProcessEvent function.");
 
             return 0;
         }
@@ -275,7 +275,7 @@ protected:
         MSG msg;
         BOOL ret = FALSE;
 
-        while((ret = GetMessage( &msg, NULL, 0, 0 )) != 0)
+        while((ret = GetMessage( &msg, nullptr, 0, 0 )) != 0)
         {
             if(ret == -1)
                 throw std::runtime_error("Win32 event loop error.");
@@ -294,33 +294,35 @@ protected:
         if(m_handle)
             throw std::runtime_error("Wind32 window handle is not NULL. Maybe window created ?.");
 
-        std::wstring classname = L"vgu::iWin32Window";
-        classname += std::to_wstring(reinterpret_cast<int64_t>(this));
-        //std::wcout << classname << std::endl;
-
-        HINSTANCE hinstance = (HINSTANCE)::GetModuleHandle(NULL);
+        if(s_windows.size() == 0)
+        {
+            s_classname = L"pwindow::Win32Window";
+            s_classname += std::to_wstring(reinterpret_cast<int64_t>(this));
+            //std::wcout << classname << std::endl;
+            s_hinstance = (HINSTANCE)::GetModuleHandle(nullptr);
+        }
 
         WNDCLASSEXW wndclassex = {0};
         wndclassex.cbSize = sizeof(WNDCLASSEXW);
         wndclassex.lpfnWndProc = &Win32Window::StaticProcessEvent;
         wndclassex.style = CS_DBLCLKS |CS_HREDRAW|CS_VREDRAW|CS_OWNDC;
-        wndclassex.hInstance = hinstance;
-        wndclassex.lpszClassName = classname.c_str();
-        wndclassex.hCursor = LoadCursor(NULL, IDC_ARROW);
+        wndclassex.hInstance = s_hinstance;
+        wndclassex.lpszClassName = s_classname.c_str();
+        wndclassex.hCursor = LoadCursor(nullptr, IDC_ARROW);
 
-        if(!::RegisterClassExW(&wndclassex))
+        if(!s_windows.size() && !::RegisterClassExW(&wndclassex))
             throw std::runtime_error("Can't register Win32 window class.");
 
         //::DwmEnableComposition(DWM_EC_DISABLECOMPOSITION);
 
         std::wstring wtitle = Utf8ToWstring(title);
-        m_handle = ::CreateWindowExW(0, classname.c_str(), wtitle.c_str(), WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
-                                    x, y, width, height, NULL, NULL, hinstance, this);
+        m_handle = ::CreateWindowExW(0, s_classname.c_str(), wtitle.c_str(), WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
+                                    x, y, width, height, nullptr, nullptr, s_hinstance, this);
 
         if(!m_handle)
             throw std::runtime_error("Can't create Win32 window.");
 
-        HDC hdc = ::GetDC(m_handle);
+        //HDC hdc = ::GetDC(m_handle);
         ::ShowWindow(m_handle, SW_SHOW);
         ::UpdateWindow(m_handle);
 
@@ -333,7 +335,14 @@ protected:
         {
             RemoveFromEventLoop(CastThis());
             ::DestroyWindow(m_handle);
-            m_handle = NULL;
+            m_handle = nullptr;
+
+            if(s_windows.size() == 0)
+            {
+                ::UnregisterClassW(s_classname.c_str(), s_hinstance);
+                s_classname = L"";
+                s_hinstance = nullptr;
+            }
         }
     }
 
@@ -343,7 +352,7 @@ protected:
 
         if(length != 0)
         {
-            int num_chars = ::MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, str, length, NULL, 0);
+            int num_chars = ::MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, str, length, nullptr, 0);
             std::wstring wstrTo;
             if(num_chars)
             {
@@ -376,8 +385,10 @@ private:
             s_windows.erase(i);
     }
 
-    HWND m_handle{NULL};
+    HWND m_handle{nullptr};
     static inline std::vector<WindowT*> s_windows;
+    static inline HINSTANCE s_hinstance{nullptr};
+    static inline std::wstring s_classname;
 };
 
 

@@ -11,7 +11,6 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PWINDOW_BINARY_DIR})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PWINDOW_BINARY_DIR})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-#add_library(pwindow pwindow/EventLopp.hpp pwindow/window.hpp pwindow/Win32Window.hpp)
 
 # Examples
 add_subdirectory(examples pwindow)

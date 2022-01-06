@@ -7,7 +7,7 @@ int main()
 {    
     try
     {
-        pwindow::MainWindow window("Window", 300, 200, 800, 600);
+        pwindow::MainWindow window("Main Window", 300, 200, 800, 600);
 
         return window.Run();
     }

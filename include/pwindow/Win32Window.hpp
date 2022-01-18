@@ -163,11 +163,7 @@ protected:
         return static_cast<WindowT*>(this);
     }
 
-    virtual void OnIdle()
-    {
-         OnDraw();
-    }
-
+    virtual void OnIdle(){}
     virtual void OnDraw(){}
     virtual void OnSize(int width, int height){}
     virtual void OnLostFocus(){}
@@ -234,7 +230,6 @@ protected:
             }
         }
 
-        OnIdle();
         return false;
     }
 

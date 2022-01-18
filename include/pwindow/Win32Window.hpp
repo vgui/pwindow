@@ -29,14 +29,6 @@ public:
         return m_handle;
     }
 
-    bool IsValid()
-    {
-        if(::IsWindow(m_handle))
-            return true;
-        else
-            return false;
-    }
-
     void Close()
     {
         ::PostQuitMessage(0);
@@ -195,12 +187,7 @@ protected:
         {
             if(msg == WM_PAINT)
             {
-                PAINTSTRUCT ps;
-                HDC dc = ::BeginPaint(m_handle, &ps);
-
                 OnDraw();
-
-                ::EndPaint(m_handle, &ps);
                 result = 0;
                 return true;
             }
@@ -300,10 +287,11 @@ protected:
         WNDCLASSEXW wndclassex = {0};
         wndclassex.cbSize = sizeof(WNDCLASSEXW);
         wndclassex.lpfnWndProc = &Win32Window::StaticProcessEvent;
-        wndclassex.style = CS_DBLCLKS |CS_HREDRAW|CS_VREDRAW|CS_OWNDC;
+        wndclassex.style = CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
         wndclassex.hInstance = s_hinstance;
         wndclassex.lpszClassName = s_classname.c_str();
         wndclassex.hCursor = LoadCursor(nullptr, IDC_ARROW);
+        wndclassex.hbrBackground = nullptr;
 
         if(!s_windows.size() && !::RegisterClassExW(&wndclassex))
             throw std::runtime_error("Can't register Win32 window class.");
@@ -317,7 +305,6 @@ protected:
         if(!m_handle)
             throw std::runtime_error("Can't create Win32 window.");
 
-        //HDC hdc = ::GetDC(m_handle);
         ::ShowWindow(m_handle, SW_SHOW);
         ::UpdateWindow(m_handle);
 
@@ -326,7 +313,7 @@ protected:
 
     virtual void Destroy()
     {
-        if(IsValid())
+        if(m_handle)
         {
             RemoveFromEventLoop(CastThis());
             ::DestroyWindow(m_handle);
